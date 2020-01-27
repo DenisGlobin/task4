@@ -35,5 +35,30 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+//        'created_at' => 'datetime:YYYY-MM-DDThh:mm:ss.sTZD',
+//        'modify_at' => 'datetime:YYYY-MM-DDThh:mm:ss.sTZD',
     ];
+
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'modify_at';
+    //protected $dateFormat = 'c';
+
+    protected $dates = [
+        'created_at', 'modify_at',
+    ];
+
+//    public function getDateFormat()
+//    {
+//        return 'YYYY-MM-DDThh:mm:ss.sTZD';
+//    }
+
+    public function getCreatedAtAttribute($date)
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
+    }
+
+    public function getModifyAtAttribute($date)
+    {
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
+    }
 }

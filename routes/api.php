@@ -23,7 +23,7 @@ Route::post('logout', 'Auth\LoginController@logout');
 
 Route::pattern('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
-Route::redirect('/', '/api/v1/document/?page=1&perPage=20');
+Route::redirect('/', '/api/v1/document/page=1&perPage=20');
 Route::get('/v1/document/page={page?}&perPage={perPage?}', 'DocumentController@index')
     ->name('get.documents')
     ->where(['page' => '[0-9]+', 'perPage' => '[0-9]+']);

@@ -7,6 +7,9 @@ use App\Document;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\DocumentsResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
+use App\Library\JsonPatcher;
 
 class DocumentController extends Controller
 {
@@ -17,7 +20,7 @@ class DocumentController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth'])
+        $this->middleware(['auth:api'])
             ->only(['createDocument', 'editDocument', 'publishDocument']);
     }
 
@@ -29,8 +32,6 @@ class DocumentController extends Controller
         $total = count($items);
         $paginator = new LengthAwarePaginator($items, $total, $perPage, $page);
 
-//        return response()->json($paginator, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-
         DocumentsResource::withoutWrapping();
         return (new DocumentsResource($paginator))
             ->response()
@@ -41,9 +42,8 @@ class DocumentController extends Controller
     public function getDocument(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
-//        return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+//        dd(json_decode($document->payload, true));
 
-//        DocumentResource::withoutWrapping();
         DocumentResource::wrap('document');
         return (new DocumentResource($document))
             ->response()
@@ -56,17 +56,26 @@ class DocumentController extends Controller
     {
 //      $document = Document::create($request->all());
         $document = new Document;
-        $document->payload = 'draft';
+        $document->status = 'draft';
         $document->payload = json_encode($request->payload);
+        $document->user_id = Auth::guard('api')->id();
         $document->save();
         return response()->json($document, 201, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }
 
     public function editDocument(Request $request, string $id)
     {
+//        dd(json_decode($request->payload, true, 512, JSON_OBJECT_AS_ARRAY));
         $document = Document::findOrFail($id);
-//        $document->update($request->all());
-        $document->payload = json_encode($request->payload);
+
+        $targetDocument = json_decode($document->payload);
+//        var_dump($targetDocument);
+//        die();
+        $patchDocument = collect($request->payload);
+        $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
+        $document->payload = json_encode($patchedPayload);
+
+//        $document->payload = json_encode($request->payload);
         $document->save();
         return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }

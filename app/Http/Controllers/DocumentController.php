@@ -42,7 +42,6 @@ class DocumentController extends Controller
     public function getDocument(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
-//        dd(json_decode($document->payload, true));
 
         DocumentResource::wrap('document');
         return (new DocumentResource($document))
@@ -54,7 +53,6 @@ class DocumentController extends Controller
 
     public function createDocument(Request $request)
     {
-//      $document = Document::create($request->all());
         $document = new Document;
         $document->status = 'draft';
         $document->payload = json_encode($request->payload);
@@ -65,17 +63,13 @@ class DocumentController extends Controller
 
     public function editDocument(Request $request, string $id)
     {
-//        dd(json_decode($request->payload, true, 512, JSON_OBJECT_AS_ARRAY));
         $document = Document::findOrFail($id);
 
         $targetDocument = json_decode($document->payload);
-//        var_dump($targetDocument);
-//        die();
         $patchDocument = collect($request->payload);
         $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
         $document->payload = json_encode($patchedPayload);
 
-//        $document->payload = json_encode($request->payload);
         $document->save();
         return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }

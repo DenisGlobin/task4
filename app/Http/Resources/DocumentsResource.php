@@ -14,10 +14,17 @@ class DocumentsResource extends ResourceCollection
      */
     public function toArray($request)
     {
-//        return parent::toArray($request);
-//        return DocumentResource::collection($this->collection);
+        $perPage = $this->perPage();
+        $currentPage = $this->currentPage();
+        if ($currentPage == 1) {
+            $start = 0;
+        }
+        else {
+            $start = ($currentPage - 1) * $perPage;
+        }
+
         return [
-            'document' => DocumentResource::collection($this->collection),
+            'document' => DocumentResource::collection($this->collection->reverse()->slice($start, $perPage)->all()),
             'pagination' => [
                 'total' => $this->total(),
                 'count' => $this->count(),

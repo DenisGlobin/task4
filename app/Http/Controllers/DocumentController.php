@@ -53,29 +53,51 @@ class DocumentController extends Controller
 
     public function createDocument(Request $request)
     {
-        $document = new Document;
-        $document->status = 'draft';
-        $document->payload = json_encode($request->payload);
-        $document->user_id = Auth::guard('api')->id();
-        $document->save();
-        return response()->json($document, 201, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+        $user = Auth::guard('api')->user();
+//        $this->authorize('create', Document::class);
+        if ($user->can('create', Document::class)) {
+            // The current user can create document...
+            $document = new Document;
+            $document->status = 'draft';
+            $document->payload = json_encode($request->payload);
+            $document->user_id = $user->id();
+            $document->save();
+
+            return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+        } else {
+            return response()->json(['error' => 'Not Authorized.'], 401, ['Content-type' => 'application/json; charset=utf-8']);
+        }
     }
 
     public function editDocument(Request $request, string $id)
     {
         $document = Document::findOrFail($id);
+        $user = Auth::guard('api')->user();
 
-        $targetDocument = json_decode($document->payload);
-        $patchDocument = collect($request->payload);
-        $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
-        $document->payload = json_encode($patchedPayload);
+//        $this->authorize('update', $document);
+        if ($user->can('update', $document)) {
+            // The current user can update the document...
+            $targetDocument = json_decode($document->payload);
+            $patchDocument = collect($request->payload);
+            $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
+            $document->payload = json_encode($patchedPayload);
+            $document->save();
 
-        $document->save();
-        return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+            return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+        }
     }
 
     public function publishDocument(Request $request, string $id)
     {
-        //
+        $document = Document::findOrFail($id);
+        $user = Auth::guard('api')->user();
+
+//        $this->authorize('publish', $document);
+        if ($user->can('publish', $document)) {
+            $document->status = 'published';
+            $document->save();
+
+            return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
+        }
     }
 }

@@ -53,7 +53,7 @@ class Handler extends ExceptionHandler
     {
         if ($exception instanceof ModelNotFoundException && $request->wantsJson()) {
             return response()->json([
-                'error' => 'Ничего не найдено'
+                'error' => 'Not found.'
             ], 404);
         }
 

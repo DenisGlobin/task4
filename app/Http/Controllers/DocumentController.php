@@ -4,11 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Document;
-use Illuminate\Pagination\LengthAwarePaginator;
-use App\Http\Resources\DocumentResource;
-use App\Http\Resources\DocumentsResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Collection;
 use App\Library\JsonPatcher;
 
 class DocumentController extends Controller
@@ -20,84 +16,113 @@ class DocumentController extends Controller
      */
     public function __construct()
     {
-        $this->middleware(['auth:api'])
-            ->only(['createDocument', 'editDocument', 'publishDocument']);
+        $this->middleware(['auth'])
+            ->only(['create', 'store', 'edit', 'update', 'publish']);
     }
 
-    public function index(int $page = 1, int $perPage = 20)
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
     {
-        // whatever is the result of your query that you wish to paginate.
-        $items = Document::all();
-        // The total number of items. If the `$items` has all the data, you can do something like this:
-        $total = count($items);
-        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page);
-
-        DocumentsResource::withoutWrapping();
-        return (new DocumentsResource($paginator))
-            ->response()
-            ->header('Content-type', 'application/json')
-            ->setStatusCode(200);
+        $documents = Document::paginate(20);
+        return view('index', ['documents' => $documents]);
     }
 
-    public function getDocument(string $id)
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function create()
+    {
+        return view('create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        $this->authorize('create', Document::class);
+        // The current user can create document...
+        $document = new Document;
+        $document->status = 'draft';
+        $document->payload = json_encode($request->payload);
+        $document->user_id = $user->id;
+        $document->save();
+
+        return redirect()->route('documents.index');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function show(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
-
-        DocumentResource::wrap('document');
-        return (new DocumentResource($document))
-            ->response()
-            ->setEncodingOptions(JSON_PRETTY_PRINT)
-            ->header('Content-type', 'application/json')
-            ->setStatusCode(200);
+        return view('show', ['document' => $document]);
     }
 
-    public function createDocument(Request $request)
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  string  $id
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function edit(string $id)
     {
-        $user = Auth::guard('api')->user();
-//        $this->authorize('create', Document::class);
-        if ($user->can('create', Document::class)) {
-            // The current user can create document...
-            $document = new Document;
-            $document->status = 'draft';
-            $document->payload = json_encode($request->payload);
-            $document->user_id = $user->id();
-            $document->save();
-
-            return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-        } else {
-            return response()->json(['error' => 'Not Authorized.'], 401, ['Content-type' => 'application/json; charset=utf-8']);
-        }
+        $document = Document::where('id', $id)->firstOrFail();
+        return view('edit', ['document' => $document]);
     }
 
-    public function editDocument(Request $request, string $id)
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, string $id)
     {
         $document = Document::findOrFail($id);
-        $user = Auth::guard('api')->user();
+        $user = Auth::user();
 
-//        $this->authorize('update', $document);
-        if ($user->can('update', $document)) {
-            // The current user can update the document...
-            $targetDocument = json_decode($document->payload);
-            $patchDocument = collect($request->payload);
-            $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
-            $document->payload = json_encode($patchedPayload);
-            $document->save();
+        $this->authorize('update', $document);
+        // The current user can update the document...
+        $targetDocument = json_decode($document->payload);
+        $patchDocument = collect($request->payload);
+        $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
+        $document->payload = json_encode($patchedPayload);
+        $document->save();
 
-            return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-        }
+        return redirect()->route('documents.index');
     }
 
-    public function publishDocument(Request $request, string $id)
+    /**
+     * Publish the specified resource from storage.
+     *
+     * @param  string  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function publish(string $id)
     {
         $document = Document::findOrFail($id);
-        $user = Auth::guard('api')->user();
+        $user = Auth::user();
 
-//        $this->authorize('publish', $document);
-        if ($user->can('publish', $document)) {
-            $document->status = 'published';
-            $document->save();
+        $this->authorize('publish', $document);
+        $document->status = 'published';
+        $document->save();
 
-            return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-        }
+        return redirect()->route('documents.index');
     }
 }

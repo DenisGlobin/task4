@@ -41,7 +41,5 @@ class DocumentsResource extends ResourceCollection
         unset($jsonResponse['links'], $jsonResponse['meta']);
         $response->setData($jsonResponse)
             ->setEncodingOptions(JSON_PRETTY_PRINT);
-//            ->header('Content-type', 'application/json');
-//            ->setStatusCode(200);
     }
 }

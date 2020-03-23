@@ -42,7 +42,7 @@ class DocumentPolicy
      */
     public function create(User $user)
     {
-        //
+        return (isset($user)) ? true : false;
     }
 
     /**

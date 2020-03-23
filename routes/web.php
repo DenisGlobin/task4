@@ -11,11 +11,15 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
-//Auth::routes();
+Auth::routes();
 
-//Route::get('/home', 'HomeController@index')->name('home');
+Route::pattern('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
+Route::redirect('/', '/documents');
+Route::post('document/{id}/publish', 'DocumentController@publish')
+    ->name('publish')
+    ->middleware('auth');
+Route::resource('documents', 'DocumentController')->parameters([
+    'documents' => 'id'
+    ])->except('destroy');

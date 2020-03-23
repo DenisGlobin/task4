@@ -5,38 +5,36 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">Dashboard</div>
+                    <div class="card-header">Documents</div>
 
-                    <div class="card-body" id="documents">
-                        @if (session('status'))
+                    <div class="card-body">
+                        @if (session('success'))
                             <div class="alert alert-success" role="alert">
-                                {{ session('status') }}
+                                {{ session('success') }}
+                            </div>
+                        @endif
+                        @if (session('errors'))
+                            <div class="alert alert-danger" role="alert">
+                                {{ session('errors') }}
                             </div>
                         @endif
 
-                        {{--@foreach($docs as $doc)--}}
-                            {{--<a href="{{ route('get.document', ['id' => $doc->id]) }}">Document #{{ $doc->id }}</a>--}}
-                        {{--@endforeach--}}
-                        {{--<br>--}}
-                        {{--{{ $docs->links() }}--}}
+                        @foreach($documents as $document)
+                            <p>
+                                Document #: <a href="{{ route('documents.show', ['id' => $document->id]) }}">{{ $document->id }}</a>
+                            </p>
+                            <p>Created at: {{ $document->created_at }}</p>
+                            <p>Modify at: {{ $document->modify_at }}</p>
+                            @can('update', $document)
+                                <a href="{{ route('documents.edit', ['id' => $document->id]) }}">Edit</a>
+                            @endcan
+                            <br><hr>
+                        @endforeach
+                        <br>
+                        {{ $documents->links() }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-@endsection
-
-@section('js')
-    <script type="text/javascript">
-        var docs = @json($docs);
-        console.log(docs);
-        var data = docs.data;
-        // docs.data.forEach(function (doc) {
-        //    console.log(doc);
-        // });
-        for (let i=0; i < data.length; i++) {
-            console.log(docs.data[i]);
-        }
-        //$("div#documents").append($(''));
-    </script>
 @endsection

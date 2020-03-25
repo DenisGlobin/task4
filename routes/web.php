@@ -18,7 +18,7 @@ Route::pattern('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 
 Route::redirect('/', '/documents');
 Route::post('document/{id}/publish', 'DocumentController@publish')
-    ->name('publish')
+    ->name('documents.publish')
     ->middleware('auth');
 Route::resource('documents', 'DocumentController')->parameters([
     'documents' => 'id'

@@ -31,7 +31,12 @@ class DocumentPolicy
      */
     public function view(?User $user, Document $document)
     {
-        //
+        if ($document->status === 'published' || $user->id === $document->user_id) {
+            // Allow the user to view the document
+            return true;
+        } else {
+            return Response::deny('You can\'t view this document.', 403);
+        }
     }
 
     /**

@@ -21,6 +21,11 @@
 
                         <form action="{{ route('documents.store') }}" method="POST">
                             @csrf
+                            <div class="form-group">
+                                <label for="payload">Payload: </label>
+                                <textarea class="form-control" id="payload" name="payload" rows="6"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
                         </form>
                     </div>
                 </div>

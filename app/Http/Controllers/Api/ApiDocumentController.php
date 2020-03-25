@@ -34,8 +34,11 @@ class ApiDocumentController extends Controller
      */
     public function index(int $page = 1, int $perPage = 20)
     {
+        $user = Auth::guard('api')->user();
         // whatever is the result of your query that you wish to paginate.
-        $items = Document::all();
+        $items = Document::where('status', 'published')
+            ->orWhere('user_id', $user)
+            ->get();
         // The total number of items. If the `$items` has all the data, you can do something like this:
         $total = count($items);
         $paginator = new LengthAwarePaginator($items, $total, $perPage, $page);
@@ -56,13 +59,17 @@ class ApiDocumentController extends Controller
     public function show(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
+        $user = Auth::guard('api')->user();
 
-        DocumentResource::wrap('document');
-        return (new DocumentResource($document))
-            ->response()
-            ->setEncodingOptions(JSON_PRETTY_PRINT)
-            ->header('Content-type', 'application/json')
-            ->setStatusCode(200);
+        if ($user->can('view', Document::class)) {
+            // The current user can view this document...
+            DocumentResource::wrap('document');
+            return (new DocumentResource($document))
+                ->response()
+                ->setEncodingOptions(JSON_PRETTY_PRINT)
+                ->header('Content-type', 'application/json')
+                ->setStatusCode(200);
+        }
     }
 
     /**
@@ -103,7 +110,7 @@ class ApiDocumentController extends Controller
         if ($user->can('update', $document)) {
             // The current user can update the document...
             $targetDocument = json_decode($document->payload);
-            $patchDocument = collect($request->payload);
+            $patchDocument = json_decode($request->payload);
             $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
             $document->payload = json_encode($patchedPayload);
             $document->save();

@@ -36,38 +36,62 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-//        'created_at' => 'datetime:YYYY-MM-DDThh:mm:ss.sTZD',
-//        'modify_at' => 'datetime:YYYY-MM-DDThh:mm:ss.sTZD',
     ];
 
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'modify_at';
-    //protected $dateFormat = 'c';
 
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     protected $dates = [
         'created_at', 'modify_at',
     ];
 
-//    public function getDateFormat()
-//    {
-//        return 'YYYY-MM-DDThh:mm:ss.sTZD';
-//    }
-
+    /**
+     * Change created_at date format.
+     *
+     * @param $date
+     * @return string
+     */
     public function getCreatedAtAttribute($date)
     {
         return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
     }
 
+    /**
+     * Change modify_at date format.
+     *
+     * @param $date
+     * @return string
+     */
     public function getModifyAtAttribute($date)
     {
         return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
     }
 
+    /**
+     * Generate a new API token.
+     *
+     * @return mixed|string
+     */
     public function generateToken()
     {
         $this->api_token = Str::random(60);
         $this->save();
 
         return $this->api_token;
+    }
+
+    /**
+     * Retrieve documents related with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function documents()
+    {
+        return $this->hasMany(Document::class);
     }
 }

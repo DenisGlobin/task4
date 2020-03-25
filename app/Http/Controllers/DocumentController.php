@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Document;
 use Illuminate\Support\Facades\Auth;
 use App\Library\JsonPatcher;
+use App\Http\Requests\StoreDocument;
+use App\Http\Requests\UpdateDocument;
+use App\Http\Requests\PublishDocument;
 
 class DocumentController extends Controller
 {
@@ -27,7 +30,7 @@ class DocumentController extends Controller
      */
     public function index()
     {
-        $documents = Document::paginate(20);
+        $documents = Document::latest()->paginate(20);
         return view('index', ['documents' => $documents]);
     }
 
@@ -44,14 +47,13 @@ class DocumentController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \App\Http\Requests\StoreDocument  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreDocument $request)
     {
         $user = Auth::user();
-        $this->authorize('create', Document::class);
-        // The current user can create document...
+
         $document = new Document;
         $document->status = 'draft';
         $document->payload = json_encode($request->payload);
@@ -70,6 +72,9 @@ class DocumentController extends Controller
     public function show(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
+
+        $this->authorize('view', $document);
+        // The current user can view the document.
         return view('show', ['document' => $document]);
     }
 
@@ -82,25 +87,25 @@ class DocumentController extends Controller
     public function edit(string $id)
     {
         $document = Document::where('id', $id)->firstOrFail();
+
+        $this->authorize('update', $document);
+        // The current user can update the document.
         return view('edit', ['document' => $document]);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  string  $id
-     * @return \Illuminate\Http\Response
+     * @param \App\Http\Requests\UpdateDocument $request
+     * @param string $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateDocument $request, string $id)
     {
         $document = Document::findOrFail($id);
-        $user = Auth::user();
 
-        $this->authorize('update', $document);
-        // The current user can update the document...
         $targetDocument = json_decode($document->payload);
-        $patchDocument = collect($request->payload);
+        $patchDocument = json_decode($request->payload);
         $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
         $document->payload = json_encode($patchedPayload);
         $document->save();
@@ -117,7 +122,6 @@ class DocumentController extends Controller
     public function publish(string $id)
     {
         $document = Document::findOrFail($id);
-        $user = Auth::user();
 
         $this->authorize('publish', $document);
         $document->status = 'published';

@@ -24,7 +24,12 @@
                         <p>Payload: {{ $document->payload }}</p>
                         <p>Created at: {{ $document->created_at }}</p>
                         <p>Modify at: {{ $document->modify_at }}</p>
+                        <p>Owner: {{ $document->user->name }}</p>
 
+                        <br>
+                        @can('update', $document)
+                            <a href="{{ route('documents.edit', ['id' => $document->id]) }}">Edit</a>
+                        @endcan
                     </div>
                 </div>
             </div>

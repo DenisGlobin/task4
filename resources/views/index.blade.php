@@ -20,15 +20,17 @@
                         @endif
 
                         @foreach($documents as $document)
-                            <p>
-                                Document #: <a href="{{ route('documents.show', ['id' => $document->id]) }}">{{ $document->id }}</a>
-                            </p>
-                            <p>Created at: {{ $document->created_at }}</p>
-                            <p>Modify at: {{ $document->modify_at }}</p>
-                            @can('update', $document)
-                                <a href="{{ route('documents.edit', ['id' => $document->id]) }}">Edit</a>
+                            @can('view', $document)
+                                <p>
+                                    Document #: <a href="{{ route('documents.show', ['id' => $document->id]) }}">{{ $document->id }}</a>
+                                </p>
+                                <p>Created at: {{ $document->created_at }}</p>
+                                <p>Modify at: {{ $document->modify_at }}</p>
+                                @can('update', $document)
+                                    <a href="{{ route('documents.edit', ['id' => $document->id]) }}">Edit</a>
+                                @endcan
+                                <br><hr>
                             @endcan
-                            <br><hr>
                         @endforeach
                         <br>
                         {{ $documents->links() }}

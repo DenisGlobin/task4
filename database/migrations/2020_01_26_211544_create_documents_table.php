@@ -22,9 +22,6 @@ class CreateDocumentsTable extends Migration
             $table->timestampTz('created_at')->nullable();
             $table->timestampTz('modify_at')->nullable();
         });
-//        Schema::table('documents', function (Blueprint $table){
-//            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-//        });
     }
 
     /**
@@ -34,8 +31,6 @@ class CreateDocumentsTable extends Migration
      */
     public function down()
     {
-//        Schema::table('documents', function (Blueprint $table) {
-//        });
         Schema::dropIfExists('documents');
     }
 }

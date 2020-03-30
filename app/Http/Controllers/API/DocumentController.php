@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Document;
+use App\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\DocumentsResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Collection;
 use App\Library\JsonPatcher;
 
-class ApiDocumentController extends Controller
+class DocumentController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -22,7 +22,7 @@ class ApiDocumentController extends Controller
     public function __construct()
     {
         $this->middleware(['auth:api'])
-            ->only(['createDocument', 'editDocument', 'publishDocument']);
+            ->only(['store', 'update', 'publish']);
     }
 
     /**
@@ -34,10 +34,10 @@ class ApiDocumentController extends Controller
      */
     public function index(int $page = 1, int $perPage = 20)
     {
-        $user = Auth::guard('api')->user();
+        $userId = isset(auth()->user()->id) ? auth()->user()->id : null;
         // whatever is the result of your query that you wish to paginate.
         $items = Document::where('status', 'published')
-            ->orWhere('user_id', $user)
+            ->orWhere('user_id', $userId)
             ->get();
         // The total number of items. If the `$items` has all the data, you can do something like this:
         $total = count($items);
@@ -60,8 +60,9 @@ class ApiDocumentController extends Controller
     {
         $document = Document::where('id', $id)->firstOrFail();
         $user = Auth::guard('api')->user();
+        $user = !is_null($user) ? $user : new User;
 
-        if ($user->can('view', Document::class)) {
+        if ($user->can('view', $document)) {
             // The current user can view this document...
             DocumentResource::wrap('document');
             return (new DocumentResource($document))
@@ -69,6 +70,8 @@ class ApiDocumentController extends Controller
                 ->setEncodingOptions(JSON_PRETTY_PRINT)
                 ->header('Content-type', 'application/json')
                 ->setStatusCode(200);
+        } else {
+            return response()->json(['error' => 'Not Authorized.'], 401, ['Content-type' => 'application/json; charset=utf-8']);
         }
     }
 
@@ -81,6 +84,7 @@ class ApiDocumentController extends Controller
     public function store(Request $request)
     {
         $user = Auth::guard('api')->user();
+
         if ($user->can('create', Document::class)) {
             // The current user can create document...
             $document = new Document;

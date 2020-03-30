@@ -18,6 +18,7 @@ class DocumentResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             'payload' => json_decode($this->payload),
+            'owner' => $this->user,
             'createdAt' => $this->created_at,
             'modifyAt' => $this->modify_at
         ];

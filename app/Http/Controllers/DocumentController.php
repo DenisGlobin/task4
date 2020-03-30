@@ -28,7 +28,7 @@ class DocumentController extends Controller
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
+    public function index(int $page = 1, int $perPage = 20)
     {
         $documents = Document::latest()->paginate(20);
         return view('index', ['documents' => $documents]);

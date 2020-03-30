@@ -1,0 +1,7 @@
+{
+    "api.documents.index": "\/document\/page={page?}&perPage={perPage?}",
+    "api.documents.show": "\/document\/{id}",
+    "api.documents.store": "\/document",
+    "api.documents.update": "\/document\/{id}",
+    "api.documents.publish": "\/document\/{id}\/publish"
+}

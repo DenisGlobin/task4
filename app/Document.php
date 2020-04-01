@@ -45,7 +45,7 @@ class Document extends Model
      */
     public function getCreatedAtAttribute($date)
     {
-        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d H:i:sP');
     }
 
     /**
@@ -56,7 +56,7 @@ class Document extends Model
      */
     public function getModifyAtAttribute($date)
     {
-        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d\TH:i:sP');
+        return \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date)->setTimezone('Europe/Kiev')->format('Y-m-d H:i:sP');
     }
 
     protected $guarded = [];

@@ -13,13 +13,22 @@
 </template>
 
 <script>
-    import axios from 'axios';
+    // import axios from 'axios';
     import route from '../route';
     export default {
         name: "DocumentShow",
         data() {
             return {
-                document: {},
+                document: {
+                    id: '',
+                    status: 'draft',
+                    payload: '',
+                    createdAt: '',
+                    modifyAt: '',
+                    owner: {
+                        name: '',
+                    },
+                },
             };
         },
         mounted() {
@@ -31,7 +40,10 @@
                 axios.get(route("api.documents.show", {'id':id}))
                     .then(response => {
                         this.document = response.data.document;
-                });
+                    })
+                    .catch(response => {
+                        console.log(response);
+                    });
             }
         }
     }

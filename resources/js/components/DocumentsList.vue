@@ -32,7 +32,7 @@
 </template>
 
 <script>
-    import axios from 'axios';
+    // import axios from 'axios';
     import route from '../route';
     import DocumentsListItem from "./DocumentsListItem";
     import PaginationBar from './PaginationBar';

@@ -19,6 +19,7 @@ import Login from './components/Login.vue';
 import Profile from './components/Profile';
 import DocumentShow from './components/DocumentShow';
 import DocumentEdit from './components/DocumentEdit';
+import DocumentCreate from './components/DocumentCreate';
 
 /**
  * The following block of code may be used to automatically register your
@@ -74,6 +75,14 @@ const router = new VueRouter({
             path: '/document/:id/edit',
             name: 'api.documents.edit',
             component: DocumentEdit,
+            meta: {
+                auth: true
+            }
+        },
+        {
+            path: '/document/create',
+            name: 'api.documents.create',
+            component: DocumentCreate,
             meta: {
                 auth: true
             }

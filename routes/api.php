@@ -1,7 +1,5 @@
 <?php
 
-//use Illuminate\Http\Request;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -13,15 +11,11 @@
 |
 */
 
-//Route::middleware('auth:api')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
-
 Route::pattern('id', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
 Route::redirect('/v1', '/api/v1/document/page=1&perPage=20');
 
-Route::group(['prefix' => 'v1'], function () {
+Route::group(['middleware' => 'api', 'prefix' => 'v1'], function () {
     // Guest's routes
     // Documents routes
     Route::get('document/page={page?}&perPage={perPage?}', 'API\DocumentController@index')
@@ -32,17 +26,19 @@ Route::group(['prefix' => 'v1'], function () {
     Route::group(['prefix' => 'auth'], function () {
         Route::post('register', 'API\AuthController@register')->name('register');
         Route::post('login', 'API\AuthController@login')->name('login');
-        Route::get('refresh', 'API\AuthController@refresh');
         // Authenticated User's routes
         Route::group(['middleware' => 'auth:api'], function () {
-            // Auth routes
             Route::get('user', 'API\AuthController@user')->name('user');
-            Route::post('logout', 'AuthController@logout')->name('logout');
-            // Documents routes
-            Route::post('document/', 'API\DocumentController@store')->name('api.documents.store');
-            Route::patch('document/{id}', 'API\DocumentController@update')->name('api.documents.update');
-            Route::post('document/{id}/publish', 'API\DocumentController@publish')->name('api.documents.publish');
+            Route::get('refresh', 'API\AuthController@refresh')->name('refresh');
+            Route::post('logout', 'API\AuthController@logout')->name('logout');
         });
+    });
+    // Authenticated User's routes
+    Route::group(['middleware' => 'auth:api'], function () {
+        // Documents routes
+        Route::post('document/', 'API\DocumentController@store')->name('api.documents.store');
+        Route::patch('document/{id}', 'API\DocumentController@update')->name('api.documents.update');
+        Route::post('document/{id}/publish', 'API\DocumentController@publish')->name('api.documents.publish');
     });
 });
 

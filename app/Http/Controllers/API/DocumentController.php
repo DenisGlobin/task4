@@ -11,6 +11,8 @@ use App\Http\Resources\DocumentResource;
 use App\Http\Resources\DocumentsResource;
 use Illuminate\Support\Facades\Auth;
 use App\Library\JsonPatcher;
+use App\Http\Requests\StoreDocument;
+use App\Http\Requests\UpdateDocument;
 
 class DocumentController extends Controller
 {
@@ -38,6 +40,7 @@ class DocumentController extends Controller
         // whatever is the result of your query that you wish to paginate.
         $items = Document::where('status', 'published')
             ->orWhere('user_id', $userId)
+            ->orderBy('created_at', 'asc')
             ->get();
         // The total number of items. If the `$items` has all the data, you can do something like this:
         $total = count($items);
@@ -81,22 +84,17 @@ class DocumentController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreDocument $request)
     {
         $user = Auth::guard('api')->user();
 
-        if ($user->can('create', Document::class)) {
-            // The current user can create document...
-            $document = new Document;
-            $document->status = 'draft';
-            $document->payload = json_encode($request->payload);
-            $document->user_id = $user->id;
-            $document->save();
+        $document = new Document;
+        $document->status = 'draft';
+        $document->payload = json_encode($request->payload);
+        $document->user_id = $user->id;
+        $document->save();
 
-            return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-        } else {
-            return response()->json(['error' => 'Not Authorized.'], 401, ['Content-type' => 'application/json; charset=utf-8']);
-        }
+        return response()->json($document, 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }
 
     /**
@@ -106,21 +104,17 @@ class DocumentController extends Controller
      * @param string $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateDocument $request, string $id)
     {
         $document = Document::findOrFail($id);
-        $user = Auth::guard('api')->user();
 
-        if ($user->can('update', $document)) {
-            // The current user can update the document...
-            $targetDocument = json_decode($document->payload);
-            $patchDocument = json_decode($request->payload);
-            $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
-            $document->payload = json_encode($patchedPayload);
-            $document->save();
+        $targetDocument = json_decode($document->payload);
+        $patchDocument = json_decode($request->payload);
+        $patchedPayload = (new JsonPatcher())->patch($targetDocument, $patchDocument);
+        $document->payload = json_encode($patchedPayload);
+        $document->save();
 
-            return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
-        }
+        return response()->json($document, 200, ['Content-type'=> 'application/json; charset=utf-8'], JSON_PRETTY_PRINT);
     }
 
     /**

@@ -37,9 +37,6 @@
         },
         methods : {
             pagesNumber() {
-                // if (!this.pagination.to) {
-                //     return [];
-                // }
                 let from = this.pagination.current_page - this.offset;
                 if (from < 1) {
                     from = 1;
